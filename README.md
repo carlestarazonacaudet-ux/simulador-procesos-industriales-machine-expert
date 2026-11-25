@@ -35,6 +35,7 @@ python app.py
 Abre **Conexión Modbus…**, al lado de **Guardar como…**, para editar el servidor, el puerto y el ID de unidad. La conexión inicial es `127.0.0.1:502`, con ID `255`. Para un PLC remoto, introduce la IP del PLC. La dirección `127.0.0.1` apunta al ordenador donde se ejecuta la aplicación.
 
 ## Leer y escribir
+<img width="1098" height="691" alt="Captura de pantalla 2026-11-25 132600" src="https://github.com/user-attachments/assets/d529b23f-970a-49b9-a360-975cb10bc5c5" />
 
 El signo `%` inicial es opcional. Por ejemplo, `%M1` y `M1` son equivalentes, igual que `%MW2` y `MW2` o `%MX200.0` y `MX200.0`.
 
@@ -57,6 +58,7 @@ El escaneo actualiza todas las direcciones guardadas cada **1000 ms** de forma p
 La confirmación indica que el servidor aceptó la orden. El escaneo comprueba el valor efectivo en la siguiente lectura.
 
 ## Simulación de depósito
+<img width="1364" height="677" alt="Captura de pantalla 2026-11-25 132630" src="https://github.com/user-attachments/assets/69176074-5329-4f94-a95f-36badae57389" />
 
 Abre **Simulación**, elige **Depósito** y configura la capacidad en litros. Para las válvulas puedes introducir `%MW100` o solo `100`. Basta con asignar una de las dos direcciones. La válvula sin dirección se mantiene cerrada. Indica el rango de mando y el caudal máximo en L/min. La pantalla muestra la escala de 0, 50 y 100 %, el valor leído y la apertura resultante. Por ejemplo, con rango 0–1000 y caudal máximo de 40 L/min, un valor de 250 abre la válvula al 25 % y solicita 10 L/min.
 
@@ -65,6 +67,7 @@ Cada sensor tiene un umbral en litros. La etiqueta, el indicador y la línea del
 Pulsa **Iniciar** para guardar los parámetros y simular. El depósito comienza vacío al abrir la aplicación. Su volumen cambia según el balance entre los caudales de entrada y salida, con límites de cero y la capacidad configurada. **Pausar** conserva el volumen durante la sesión y deja de actualizar las salidas de sensores. Si falla la lectura de las válvulas, el volumen queda congelado hasta que se recupere la comunicación.
 
 ## Mezcla de tres depósitos
+<img width="1354" height="1072" alt="image" src="https://github.com/user-attachments/assets/55eda9c7-c757-48a9-bb6a-f7a0438edd15" />
 
 En **Simulación**, selecciona **Mezcla de tres depósitos**. Introduce el nombre, la capacidad y el volumen inicial de cada depósito. Configura el caudal máximo de cada origen. Si asignas una palabra `%MW`, el origen utiliza su rango mínimo y máximo para calcular la apertura. Si dejas la dirección vacía, ese origen descarga al caudal máximo mientras tenga líquido y quede espacio en la mezcla.
 
@@ -102,6 +105,7 @@ En **Pulsadores de la cinta** puedes asignar un bit y un símbolo a **Marcha**, 
 El **Selector** admite un bit y un símbolo por posición. Usa el desplegable o pulsa el dibujo para cambiar de posición. Al elegir una posición, primero desactiva el bit de la otra y después activa el de la seleccionada. La aguja indica la posición confirmada. Los dos bits deben ser distintos. Las direcciones y los símbolos se guardan con la configuración.
 
 ## Cinta de medición de altura
+<img width="1354" height="1117" alt="image" src="https://github.com/user-attachments/assets/2ae75282-94b3-4a0f-b52b-507cfedc7f99" />
 
 En **Simulación**, elige **Cinta de medición de altura**. Asigna un bit a **Marcha adelante** y otro a **Marcha atrás**. La cinta se mueve cuando hay un solo mando activo. Puedes alimentar piezas metálicas bajas, nominales, altas o aleatorias, en lote o en continuo.
 
@@ -122,6 +126,9 @@ En **Proceso**, elige cómo generar las alturas:
 
 ## Cinta de medición de ancho
 
+<img width="1363" height="1117" alt="image" src="https://github.com/user-attachments/assets/e6584e3f-1366-4d17-a7b0-d335cdeddebe" />
+
+
 En **Simulación**, elige **Cinta de medición de ancho** para ver desde arriba una cinta de azulejos cuadrados. Los dos sensores difusos enfrentados apuntan a los bordes del azulejo en el centro de la cinta. El gráfico muestra ambos haces, el ancho, la clasificación, el voltaje y la palabra resultante.
 
 Configura los mismos parámetros que en la cinta de altura, usando anchos en milímetros. Se usan los dos bits de marcha, la misma escala configurable de 0–10 V a `%MW`, los métodos del proceso y **Calcular variabilidad**. El nuevo simulador guarda su configuración por separado e incluye avisos, pulsadores y seis displays.
@@ -137,6 +144,9 @@ En **Simulación**, elige **Inspección por cuatro esquinas**. Los sensores virt
 El simulador calcula los anchos izquierdo y derecho, los largos superior e inferior, el desplazamiento lateral del centro de las cuatro esquinas, la diferencia entre diagonales y el mayor error angular respecto a 90°. La salida analógica general representa el promedio de los dos anchos. Se pueden configurar las mismas formas, desplazamientos, métodos de variabilidad y avisos que en la cinta de ancho.
 
 ## Paletizador cartesiano
+
+<img width="1354" height="1143" alt="image" src="https://github.com/user-attachments/assets/535e7ddc-7d7f-4116-ac20-9f9b48cbba0d" />
+
 
 Los bits **Cinta adelante** y **Cinta atrás** controlan la cinta. Avanza hasta que la caja llegue al tope, invierte la marcha para alinearla con **Sensor de caja centrada** y para la cinta. Baja el brazo y activa **Mando de vacío** para recoger. Mantén el vacío durante el traslado y desactívalo con el brazo abajo y la carga apoyada. Si lo desactivas con carga en el aire o sin apoyo compatible, el elemento se rompe y aumenta el contador de roturas.
 
@@ -154,6 +164,9 @@ Los pilotos del gráfico muestran **Inicial**, **Estación 1**, **Estación 2**,
 
 ## Botonera
 
+<img width="1357" height="1067" alt="image" src="https://github.com/user-attachments/assets/457bccf2-2384-4c67-be79-cfaf613a70bd" />
+
+
 En **Simulación**, elige **Botonera**. Los ajustes aparecen debajo de cada elemento del frontal. Pulsa **Iniciar** para aplicar los estados iniciales y comunicar con el PLC.
 
 - Los cuatro **pulsadores** tienen color, símbolo, dirección y estado de reposo. Admiten un bit de memoria o una palabra `%MW` completa para escribir 0 o 1. Mientras se pulsan, invierten el estado. Al soltarlos, vuelven al estado de reposo.
@@ -162,6 +175,8 @@ En **Simulación**, elige **Botonera**. Los ajustes aparecen debajo de cada elem
 - Los tres **potenciómetros** tienen rango entero configurable y escriben su valor en una palabra `%MW`. El deslizador está debajo del mando.
 
 **Botonera lite** usa las direcciones, símbolos, rangos y estados de **Botonera** sin mostrar los campos de configuración. El frontal compacto agrupa los pulsadores cuadrados, los selectores y potenciómetros estrechos y los seis displays en dos columnas. Pulsa los iconos para usar los pulsadores y selectores, y gira los potenciómetros arrastrando su mando. Si estaba en pausa, al abrir Lite se activa con la configuración actual. Puedes volver a **Botonera** sin reiniciar los mandos.
+
+<img width="1363" height="378" alt="image" src="https://github.com/user-attachments/assets/c5ef8909-a599-4301-9f3a-3e23423baa24" />
 
 En los M241, M251 y M262, usa `%MX` o `%MWn.bit` para acceder a bits de memoria del servidor integrado. Para escribirlos, la aplicación intenta usar la función Modbus 22 (escritura por máscara). Si el servidor la rechaza como función no soportada, puedes marcar **Permitir lectura y modificación** para hacer la escritura en dos operaciones. Usa esa opción solo en palabras que el PLC u otro cliente no modifiquen simultáneamente, porque una actualización entre la lectura y la escritura podría perderse. [Direccionamiento de bits de Schneider](https://www.se.com/my/en/faqs/FA248757/)
 
