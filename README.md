@@ -2,6 +2,9 @@
 
 Aplicación de escritorio en español para leer y escribir palabras y bits por Modbus TCP y simular equipos. El ejecutable de Windows incluye la interfaz y los simuladores.
 
+<img width="1364" height="878" alt="Captura de pantalla 2026-11-25 132029" src="https://github.com/user-attachments/assets/f6663410-7799-49a7-8b3a-77ddaf34061f" />
+
+
 ## Primeros pasos
 
 1. Abre **Conexión Modbus…**, introduce la IP o el nombre del servidor, el puerto y el ID de unidad, y pulsa **Aplicar**.
