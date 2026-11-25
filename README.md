@@ -85,6 +85,8 @@ Cada depósito tiene dos sensores independientes. Introduce el **Umbral (L)** y,
 
 ## Cinta transportadora
 
+<img width="1363" height="378" alt="image" src="https://github.com/user-attachments/assets/2993a47d-201a-4ad6-bb90-d37ba30a1988" />
+
 En **Simulación**, selecciona **Cinta transportadora**, configura el mando y pulsa **Iniciar**.
 
 - **Dos bits.** Configura **Marcha derecha** y **Marcha izquierda**. La cinta se mueve cuando solo uno de los bits está activo. Con ambos bits apagados o ambos encendidos, se detiene.
