@@ -85,7 +85,7 @@ Cada depósito tiene dos sensores independientes. Introduce el **Umbral (L)** y,
 
 ## Cinta transportadora
 
-<img width="1363" height="378" alt="image" src="https://github.com/user-attachments/assets/2993a47d-201a-4ad6-bb90-d37ba30a1988" />
+<img width="1364" height="878" alt="Captura de pantalla 2026-11-25 132029" src="https://github.com/user-attachments/assets/cd93abe0-9a36-49b0-bee6-275fb87c314d" />
 
 En **Simulación**, selecciona **Cinta transportadora**, configura el mando y pulsa **Iniciar**.
 
