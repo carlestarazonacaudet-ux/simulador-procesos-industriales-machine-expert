@@ -218,6 +218,18 @@ Edita los parámetros en pausa y pulsa **Iniciar** para aplicarlos. **ACC** y **
 
 El simulador modela el mando por terminales de dos hilos y las rampas lineales del ATV320. El mapa %M/%MW corresponde a variables del PLC que representan esos bornes y señales. [Manual de programación ATV320 de Schneider Electric](https://www.se.com/us/en/download/document/NVE41295/)
 
+## FANUC LR Mate 200iD/7H
+
+En **Simulación → FANUC LR Mate 200iD/7H**, elige **Manual**, pulsa **Iniciar** e introduce los ángulos de J1 a J5. **Mover** desplaza todos los ejes al objetivo, **Posición cero** los lleva a cero y **Pinza** abre o cierra la herramienta dibujada. **Velocidad %** escala las velocidades articulares y los ejes terminan juntos.
+
+Puedes escribir el objetivo de cada eje o arrastrar su deslizador hasta el ángulo deseado. Después pulsa **Mover**. Las vistas 3D, lateral, frontal y superior se actualizan juntas con la posición real. **Zona de trabajo** muestra u oculta en las cuatro vistas la envolvente aproximada de alcance del dibujo.
+
+Para mandarlo desde **Memorias**, activa **Memoria local** y elige **Origen → PLC** en el robot. Asigna los bits de **Habilitar** y **Ejecutar** y una palabra objetivo distinta para cada eje. Habilita el robot, escribe las cinco consignas y cambia **Ejecutar** de 0 a 1. Repite el flanco para cada movimiento. Si asignas **Paro**, actívalo para interrumpir el movimiento. El bit **Cerrar pinza** mantiene cerrada la herramienta mientras está activo.
+
+Las consignas y posiciones actuales usan enteros con signo en décimas de grado. Por ejemplo, escribe `-450` para pedir −45°. Las palabras de posición actual y los bits de estado son opcionales. **Movimiento terminado** permanece activo hasta la siguiente orden o el paro. Si un objetivo sale de los límites, se rechaza y se activa **Consigna fuera de rango** hasta aceptar una consigna válida o reiniciar el simulador.
+
+El brazo se representa con una proyección esquemática. Los ángulos están centrados en el recorrido de cada eje de la simulación y la trayectoria se interpola en coordenadas articulares. El mapa de bits y palabras corresponde a esta aplicación. [Ficha del FANUC LR Mate 200iD/7H](https://www.fanuc.eu/eu-en/product/robot/lr-mate-200id7h)
+
 ## Resolver problemas
 
 - **Escaneo sin conexión.** Comprueba que el servidor Modbus TCP está iniciado y que la IP, el puerto y el ID de unidad coinciden con los del servidor.

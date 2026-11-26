@@ -21,6 +21,7 @@ from palletizer import PalletizerSimulator
 from control_panel import ControlPanel
 from help_view import HelpWindow
 from atv320 import ATV320Simulator
+from fanuc import FanucSimulator
 
 DEFAULT_SCAN_MS = 1000
 MAX_SCAN_MS = 2_147_483_647
@@ -137,7 +138,7 @@ class MemoryApp:
             selector, values=("Depósito", "Mezcla de tres depósitos", "Cinta transportadora",
                               "Cinta de medición de altura", "Cinta de medición de ancho",
                               "Inspección por cuatro esquinas", "Paletizador cartesiano", "Botonera", "Botonera lite",
-                              "Variador ATV320"),
+                              "Variador ATV320", "FANUC LR Mate 200iD/7H"),
             state="readonly", width=26,
         )
         choice.current(0)
@@ -152,6 +153,7 @@ class MemoryApp:
         control_page = ttk.Frame(simulation)
         lite_page = ttk.Frame(simulation)
         atv_page = ttk.Frame(simulation)
+        fanuc_page = ttk.Frame(simulation)
         self.simulator = TankSimulator(
             tank_page, self.endpoint, self.exchange_locked, self.save_simulation,
             self.compatibility,
@@ -186,10 +188,14 @@ class MemoryApp:
         self.atv320 = ATV320Simulator(
             atv_page, self.endpoint, self.exchange_locked, self.save_simulation, self.compatibility,
         )
+        self.fanuc = FanucSimulator(
+            fanuc_page, self.endpoint, self.exchange_locked, self.save_simulation, self.compatibility,
+        )
         self.profiles = {"simulacion": self.simulator, "mezcla": self.mixer,
                          "cinta": self.conveyor, "cinta_altura": self.height_conveyor,
                          "cinta_ancho": self.tile_conveyor, "cinta_esquinas": self.corner_conveyor,
-                         "paletizador": self.palletizer, "botonera": self.control_panel, "atv320": self.atv320}
+                         "paletizador": self.palletizer, "botonera": self.control_panel, "atv320": self.atv320,
+                         "fanuc": self.fanuc}
         for simulator in self.profiles.values():
             simulator.start_button.configure(command=lambda simulator=simulator: self.toggle_simulator(simulator))
         self.simulation_defaults = {
@@ -197,12 +203,12 @@ class MemoryApp:
             for key, simulator in self.profiles.items()
         }
         pages = (tank_page, mixer_page, conveyor_page, height_page, tile_page, corner_page, pallet_page,
-                 control_page, lite_page, atv_page)
+                 control_page, lite_page, atv_page, fanuc_page)
         tank_page.pack(fill="both", expand=True)
 
         def resize_for_tab(event=None):
             if tabs.select() == str(simulation):
-                minimum_heights = (500, 500, 590, 625, 625, 680, 665, 665, 310, 660)
+                minimum_heights = (500, 500, 590, 625, 625, 680, 665, 665, 310, 660, 650)
                 index = choice.current()
                 root.minsize(680 if index == 8 else 1100, minimum_heights[index])
             else:
