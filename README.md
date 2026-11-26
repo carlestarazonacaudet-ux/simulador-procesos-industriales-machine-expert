@@ -184,6 +184,9 @@ En los M241, M251 y M262, usa `%MX` o `%MWn.bit` para acceder a bits de memoria 
 
 ## Variador ATV320
 
+<img width="1367" height="963" alt="image" src="https://github.com/user-attachments/assets/14ff75b0-0551-44dd-a3e1-3b6462f14b15" />
+
+
 En **Simulación → Variador ATV320**, selecciona **Prueba local** e inicia el simulador para mover las botellas con **Adelante**, **Atrás** y **Paro**. Ajusta el potenciómetro en Hz durante la marcha y prueba las casillas **LI3 / PS2** y **LI4 / PS4**. El frontal muestra las cuatro entradas digitales utilizadas, la fuente de la consigna, el objetivo limitado y la frecuencia de salida. La cinta cambia de velocidad con la rampa y sólo invierte el sentido después de pasar por cero.
 
 En modo **PLC**, asigna los bits de marcha adelante (LI1) y marcha atrás (LI2) y, opcionalmente, los bits PS2 y PS4. La marcha se sigue habilitando con LI1 o LI2. Las velocidades preseleccionadas tienen prioridad sobre Fr1.
