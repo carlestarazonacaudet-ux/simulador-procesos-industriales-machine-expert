@@ -13,13 +13,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
-from modbus import Address, ProtocolError, exchange, parse_address
+from modbus import Address, LocalMemory, ProtocolError, exchange, parse_address
 from simulation import TankSimulator
 from mixer import MixerSimulator
 from conveyor import ConveyorSimulator
 from palletizer import PalletizerSimulator
 from control_panel import ControlPanel
 from help_view import HelpWindow
+from atv320 import ATV320Simulator
 
 DEFAULT_SCAN_MS = 1000
 MAX_SCAN_MS = 2_147_483_647
@@ -65,6 +66,8 @@ class MemoryApp:
         self.storage = storage or program.with_name("memorias.json")
         self.results = queue.Queue()
         self.io_lock = threading.Lock()
+        self.local_memory = LocalMemory()
+        self.local_mode = False
         self.rows = {}
         self.symbols = {}
         self.descriptions = {}
@@ -112,6 +115,8 @@ class MemoryApp:
         ttk.Button(heading, text="Conexión Modbus…", command=self.open_connection).pack(side="right", padx=(0, 8))
         ttk.Button(heading, text="Cargar configuración…", command=self.import_profile).pack(side="right", padx=8)
         ttk.Button(heading, text="Ayuda", command=self.open_help).pack(side="right")
+        self.memory_mode_button = ttk.Button(heading, text="Memoria local: no", command=self.toggle_local_mode)
+        self.memory_mode_button.pack(side="right", padx=8)
         root.bind("<F1>", lambda event: self.open_help())
 
         self.host = tk.StringVar(value="127.0.0.1")
@@ -131,7 +136,8 @@ class MemoryApp:
         choice = ttk.Combobox(
             selector, values=("Depósito", "Mezcla de tres depósitos", "Cinta transportadora",
                               "Cinta de medición de altura", "Cinta de medición de ancho",
-                              "Inspección por cuatro esquinas", "Paletizador cartesiano", "Botonera", "Botonera lite"),
+                              "Inspección por cuatro esquinas", "Paletizador cartesiano", "Botonera", "Botonera lite",
+                              "Variador ATV320"),
             state="readonly", width=26,
         )
         choice.current(0)
@@ -145,6 +151,7 @@ class MemoryApp:
         pallet_page = ttk.Frame(simulation)
         control_page = ttk.Frame(simulation)
         lite_page = ttk.Frame(simulation)
+        atv_page = ttk.Frame(simulation)
         self.simulator = TankSimulator(
             tank_page, self.endpoint, self.exchange_locked, self.save_simulation,
             self.compatibility,
@@ -176,10 +183,13 @@ class MemoryApp:
             self.bind_pulse, self.press_address_pulse, self.write_control_sequence, lambda: not self.busy,
         )
         self.control_panel.make_lite(lite_page, self.bind_pulse)
+        self.atv320 = ATV320Simulator(
+            atv_page, self.endpoint, self.exchange_locked, self.save_simulation, self.compatibility,
+        )
         self.profiles = {"simulacion": self.simulator, "mezcla": self.mixer,
                          "cinta": self.conveyor, "cinta_altura": self.height_conveyor,
                          "cinta_ancho": self.tile_conveyor, "cinta_esquinas": self.corner_conveyor,
-                         "paletizador": self.palletizer, "botonera": self.control_panel}
+                         "paletizador": self.palletizer, "botonera": self.control_panel, "atv320": self.atv320}
         for simulator in self.profiles.values():
             simulator.start_button.configure(command=lambda simulator=simulator: self.toggle_simulator(simulator))
         self.simulation_defaults = {
@@ -187,12 +197,12 @@ class MemoryApp:
             for key, simulator in self.profiles.items()
         }
         pages = (tank_page, mixer_page, conveyor_page, height_page, tile_page, corner_page, pallet_page,
-                 control_page, lite_page)
+                 control_page, lite_page, atv_page)
         tank_page.pack(fill="both", expand=True)
 
         def resize_for_tab(event=None):
             if tabs.select() == str(simulation):
-                minimum_heights = (500, 500, 590, 625, 625, 680, 665, 665, 310)
+                minimum_heights = (500, 500, 590, 625, 625, 680, 665, 665, 310, 660)
                 index = choice.current()
                 root.minsize(680 if index == 8 else 1100, minimum_heights[index])
             else:
@@ -345,6 +355,8 @@ class MemoryApp:
         except (OSError, ValueError) as error:
             self.status.set(f"No se pudieron cargar las memorias guardadas. {error}")
             return
+        self.local_mode = settings.get("memoria_local") is True
+        self.update_memory_mode_button()
         self.apply_profile(settings, addresses)
 
     def read_profile(self, path):
@@ -414,7 +426,7 @@ class MemoryApp:
         self.layout_rows()
         self.restart_scan()
         self.last_session = self.session_settings(self.scan_ms)
-        if self.write_drafts and connection is not None:
+        if self.write_drafts and (self.local_mode or connection is not None):
             self.restore_saved_writes()
 
     def profile_settings(self, labels, scan_ms):
@@ -431,7 +443,7 @@ class MemoryApp:
         for key, simulator in self.profiles.items():
             settings[key] = {name: field.get().strip() for name, field in simulator.fields.items()}
         try:
-            host, port, unit = self.endpoint()
+            host, port, unit = self.parse_endpoint(self.host.get(), self.port.get(), self.unit.get())
         except ValueError:
             pass
         else:
@@ -440,7 +452,9 @@ class MemoryApp:
         return settings
 
     def session_settings(self, interval):
-        return self.profile_settings(self.rows, interval)
+        settings = self.profile_settings(self.rows, interval)
+        settings["memoria_local"] = self.local_mode
+        return settings
 
     def persist_session(self):
         self.draft_save_timer = None
@@ -476,6 +490,7 @@ class MemoryApp:
 
     def save(self, labels, scan_ms):
         settings = self.profile_settings(labels, scan_ms)
+        settings["memoria_local"] = self.local_mode
         try:
             self.write_profile(self.storage, settings)
         except OSError as error:
@@ -494,7 +509,7 @@ class MemoryApp:
         try:
             self.endpoint()
             interval = self.number(self.scan_interval.get(), 0, MAX_SCAN_MS, "El intervalo")
-            settings = self.session_settings(interval)
+            settings = self.profile_settings(self.rows, interval)
             self.write_profile(Path(path), settings)
         except (OSError, ValueError) as error:
             messagebox.showerror("Guardar configuración", str(error), parent=self.root)
@@ -511,7 +526,8 @@ class MemoryApp:
             return
         try:
             settings, addresses = self.read_profile(Path(path))
-            write_notice = (" Los valores de escritura guardados se enviarán al PLC."
+            destination = "a la memoria local" if self.local_mode else "al PLC"
+            write_notice = (f" Los valores de escritura guardados se enviarán {destination}."
                             if any(settings["valores_escritura"].values()) else "")
             accepted = messagebox.askokcancel(
                 "Cargar configuración",
@@ -525,7 +541,7 @@ class MemoryApp:
                 current = self.profile_settings((), self.scan_ms).get("conexion")
                 if current is not None:
                     settings["conexion"] = current
-            self.write_profile(self.storage, settings)
+            self.write_profile(self.storage, {**settings, "memoria_local": self.local_mode})
             self.apply_profile(settings, addresses)
         except (OSError, ValueError) as error:
             messagebox.showerror("Cargar configuración", str(error), parent=self.root)
@@ -667,7 +683,23 @@ class MemoryApp:
         self.clear_scan_values()
         self.restart_scan(delay=300)
 
+    def update_memory_mode_button(self):
+        self.memory_mode_button.configure(text=f"Memoria local: {'sí' if self.local_mode else 'no'}")
+
+    def toggle_local_mode(self):
+        if self.busy or self.pulse is not None:
+            self.memory_mode_button.bell()
+            return
+        self.local_mode = not self.local_mode
+        self.update_memory_mode_button()
+        self.clear_indicators()
+        self.persist_session()
+        source = "Memoria local activa." if self.local_mode else "Conexión Modbus seleccionada."
+        self.status.set(f"{source} Los simuladores quedaron en pausa.")
+
     def endpoint(self):
+        if self.local_mode:
+            return None, 0, 0
         return self.parse_endpoint(self.host.get(), self.port.get(), self.unit.get())
 
     def parse_endpoint(self, host, port_raw, unit_raw):
@@ -1096,6 +1128,8 @@ class MemoryApp:
         with self.io_lock:
             if cancelled is not None and cancelled.is_set():
                 return None
+            if args[0] is None:
+                return self.local_memory.exchange(*args[3:])
             return exchange(*args)
 
     def poll(self, callback):

@@ -31,6 +31,27 @@ class Address:
     bit: int | None = None
 
 
+class LocalMemory:
+    """Memoria compartida por los simuladores y el editor, bajo el bloqueo de E/S."""
+
+    def __init__(self):
+        self.coils = {}
+        self.words = {}
+
+    def exchange(self, address, value=None, allow_read_modify_write=False):
+        bank = self.coils if address.coil else self.words
+        current = bank.get(address.index, 0)
+        if address.bit is not None:
+            mask = 1 << address.bit
+            if value is None:
+                return int(bool(current & mask))
+            bank[address.index] = (current & ~mask) | (mask if value else 0)
+        elif value is None:
+            return current
+        else:
+            bank[address.index] = int(bool(value)) if address.coil else value & 0xFFFF
+
+
 def parse_address(value):
     match = re.fullmatch(r"%?(MW|MX|M)([0-9]{1,6})(?:\.([0-9]{1,2}))?",
                          value.strip().upper())

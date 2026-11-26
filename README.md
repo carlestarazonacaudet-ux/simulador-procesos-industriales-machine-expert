@@ -182,6 +182,39 @@ En **Simulación**, elige **Botonera**. Los ajustes aparecen debajo de cada elem
 
 En los M241, M251 y M262, usa `%MX` o `%MWn.bit` para acceder a bits de memoria del servidor integrado. Para escribirlos, la aplicación intenta usar la función Modbus 22 (escritura por máscara). Si el servidor la rechaza como función no soportada, puedes marcar **Permitir lectura y modificación** para hacer la escritura en dos operaciones. Usa esa opción solo en palabras que el PLC u otro cliente no modifiquen simultáneamente, porque una actualización entre la lectura y la escritura podría perderse. [Direccionamiento de bits de Schneider](https://www.se.com/my/en/faqs/FA248757/)
 
+## Variador ATV320
+
+En **Simulación → Variador ATV320**, selecciona **Prueba local** e inicia el simulador para mover las botellas con **Adelante**, **Atrás** y **Paro**. Ajusta el potenciómetro en Hz durante la marcha y prueba las casillas **LI3 / PS2** y **LI4 / PS4**. El frontal muestra las cuatro entradas digitales utilizadas, la fuente de la consigna, el objetivo limitado y la frecuencia de salida. La cinta cambia de velocidad con la rampa y sólo invierte el sentido después de pasar por cero.
+
+En modo **PLC**, asigna los bits de marcha adelante (LI1) y marcha atrás (LI2) y, opcionalmente, los bits PS2 y PS4. La marcha se sigue habilitando con LI1 o LI2. Las velocidades preseleccionadas tienen prioridad sobre Fr1.
+
+| LI3 / PS2 | LI4 / PS4 | Referencia |
+| --- | --- | --- |
+| 0 | 0 | Fr1 |
+| 1 | 0 | SP2 · Velocidad 1 |
+| 0 | 1 | SP3 · Velocidad 2 |
+| 1 | 1 | SP4 · Velocidad 3 |
+
+En **Fr1 · Fuente**, elige el potenciómetro local, una palabra directa en décimas de Hz o una entrada analógica simulada. El modo **Automática** usa la palabra directa si está asignada y el potenciómetro en caso contrario. Así, escribe `300` en la palabra directa para pedir 30,0 Hz.
+
+Para enviar al PLC el valor del mando manual, selecciona **Origen → PLC** y **Fr1 → Potenciómetro**. Escribe una palabra completa, por ejemplo `MW25`, en **Potenciómetro · Salida 0,1 Hz** y pulsa **Iniciar**. A 30,0 Hz se escribe `300` en esa palabra. Esta salida muestra el valor ajustado en el potenciómetro incluso si está activa una velocidad preseleccionada. Para leer la frecuencia real tras aplicar la rampa, usa una palabra distinta en **rFr**.
+
+Las entradas analógicas se reciben en palabras %MW, con la escala de representación del simulador:
+
+| Entrada | Formato de la palabra | Ejemplo |
+| --- | --- | --- |
+| AI1 · 0–10 V | Milivoltios | `5000` equivale a 5 V |
+| AI2 · ±10 V | Milivoltios con signo de 16 bits | `-5000` equivale a −5 V e invierte el sentido pedido |
+| AI3 · 0–20 o 4–20 mA | Microamperios | `12000` equivale a 12 mA |
+
+La magnitud analógica se escala entre LSP y HSP. Con LSP = 0 Hz y HSP = 50 Hz, tanto 5 V en AI1 como 12 mA en AI3 configurada a 4–20 mA dan 25 Hz. La escala 4–20 mA de la simulación limita la consigna al rango, sin diagnóstico de rotura de lazo. [Velocidades preseleccionadas con AI1](https://www.se.com/co/es/faqs/FA306009/) · [Escalado analógico](https://www.se.com/es/es/faqs/FA337413/)
+
+Las salidas son opcionales. El bit **Motor en movimiento** sigue la frecuencia de salida y **Giro inverso** indica el sentido real. La palabra **rFr** usa décimas de Hz con signo de 16 bits. Por ejemplo, a 30,0 Hz en marcha atrás el valor con signo es `-300` y su representación sin signo es `65236`. Al pausar, el simulador deja de actualizar las salidas del PLC.
+
+Edita los parámetros en pausa y pulsa **Iniciar** para aplicarlos. **ACC** y **dEC** definen los tiempos de las rampas lineales entre cero y **FrS**. **LSP** y **HSP** limitan la consigna durante la marcha y **tFr** limita HSP. En **tCt**, **Transición** exige un nuevo flanco de marcha al iniciar o recuperar la comunicación, **Nivel** usa el estado del bit y **Prioridad adelante** da preferencia a LI1 si ambas órdenes están activas. En los otros dos modos, ambas órdenes simultáneas se tratan como paro en este simulador. Las asignaciones y parámetros se incluyen en los perfiles JSON.
+
+El simulador modela el mando por terminales de dos hilos y las rampas lineales del ATV320. El mapa %M/%MW corresponde a variables del PLC que representan esos bornes y señales. [Manual de programación ATV320 de Schneider Electric](https://www.se.com/us/en/download/document/NVE41295/)
+
 ## Resolver problemas
 
 - **Escaneo sin conexión.** Comprueba que el servidor Modbus TCP está iniciado y que la IP, el puerto y el ID de unidad coinciden con los del servidor.
@@ -192,6 +225,10 @@ En los M241, M251 y M262, usa `%MX` o `%MWn.bit` para acceder a bits de memoria 
 - **Un display muestra «—».** Comprueba que el simulador está activo, que el display tiene asignada una dirección válida y que el PLC responde.
 
 ## Conexión local y simulación
+
+Activa **Memoria local** en la barra superior para usar los simuladores sin Machine Expert. La pestaña **Memorias**, la **Botonera** y los simuladores comparten los mismos valores. Usa las direcciones habituales `%M`, `%MW`, `%MX` o bits de palabra. En el ATV320, elige **Origen → PLC** para que los bornes configurados utilicen esta memoria compartida. **Prueba local** corresponde a los mandos propios del ATV320.
+
+Al cambiar de modo, los simuladores quedan en pausa. La memoria local comienza a cero y conserva sus valores mientras la aplicación está abierta. El programa recuerda el modo y restaura los valores de escritura guardados en el próximo inicio. El modo local sustituye el intercambio de variables Modbus dentro de la aplicación. Para ejecutar la lógica Ladder, usa Machine Expert.
 
 Si usas el modo **Online → Simulación** integrado de EcoStruxure Machine Expert, Schneider indica que ese simulador usa el protocolo de Machine Expert y no ofrece Modbus TCP. Para usar esta aplicación en `127.0.0.1`, hace falta un servidor o puente Modbus TCP local que publique las variables. También puedes conectarte directamente a un PLC con el servidor Modbus TCP habilitado usando su dirección IP. [FAQ de Schneider sobre el simulador](https://www.se.com/es/es/faqs/FAQ000224762/)
 
